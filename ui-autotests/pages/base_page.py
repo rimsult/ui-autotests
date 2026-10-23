@@ -56,7 +56,8 @@ class BasePage:
         return self.wait_visible(locator).text.strip()
 
     def get_value(self, locator: Locator) -> str:
-        return self.find(locator).get_property('value') or ''
+        value = self.find(locator).get_property('value')
+        return '' if value is None else str(value)
 
     def is_visible(self, locator: Locator) -> bool:
         return any(e.is_displayed() for e in self.driver.find_elements(*locator))

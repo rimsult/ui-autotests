@@ -1,5 +1,6 @@
 """Проверяемые настройки окружения для независимых запусков."""
 import os
+from math import isfinite
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlparse
@@ -41,6 +42,8 @@ class Settings:
                        int(os.getenv('WINDOW_HEIGHT', '1080')), message)
         if settings.browser not in {'chrome', 'firefox'}:
             raise ValueError('BROWSER должен быть chrome или firefox')
+        if not isfinite(settings.explicit_wait):
+            raise ValueError('EXPLICIT_WAIT должен быть конечным положительным числом')
         if min(settings.explicit_wait, settings.window_width, settings.window_height) <= 0:
             raise ValueError('Ожидание и размеры окна должны быть положительными')
         return settings

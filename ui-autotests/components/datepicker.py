@@ -1,4 +1,4 @@
-"""Компонент Jetpack date picker, исследованный на реальном сайте."""
+"""Выбор даты и навигация в календаре Jetpack."""
 from datetime import date
 import allure
 from selenium.webdriver.common.by import By
@@ -26,7 +26,7 @@ class DatePicker:
             self.page.click(self.field)
         # После закрытия компонент временно блокирует open на 100 мс.
         # ArrowDown открывает, но не переключает состояние, в отличие от клика.
-        def ensure_open(_):
+        def ensure_open(_: object) -> bool:
             if self.page.is_visible(self.ROOT):
                 return True
             self.page.find(self.field).send_keys(Keys.ARROW_DOWN)

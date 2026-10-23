@@ -1,5 +1,7 @@
 """DOM-модалка и общий адаптер нативных диалогов."""
 import allure
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
@@ -41,6 +43,25 @@ class Modal:
     def visible(self) -> bool:
         return self.page.is_visible(self.root)
 
+    def _remains_in_state(self, visible: bool, seconds: float) -> bool:
+        """Наблюдать состояние дольше анимации закрытия, не заменяя ожидание паузой."""
+        if self.visible() != visible:
+            return False
+        try:
+            WebDriverWait(self.page.driver, seconds, poll_frequency=0.1).until(
+                lambda _: self.visible() != visible)
+        except TimeoutException:
+            return True
+        return False
+
+    @allure.step('Убедиться, что окно не закрывается в течение {seconds} секунд')
+    def remains_open(self, seconds: float = 1.2) -> bool:
+        return self._remains_in_state(True, seconds)
+
+    @allure.step('Убедиться, что окно остаётся скрытым в течение {seconds} секунд')
+    def remains_closed(self, seconds: float = 1.2) -> bool:
+        return self._remains_in_state(False, seconds)
+
 
 class Dialog:
     """Адаптер для DOM или нативного alert/confirm/prompt без угадывания типа."""
@@ -52,8 +73,13 @@ class Dialog:
         return self.page.wait.until(lambda d: 'native' if EC.alert_is_present()(d)
                                     else ('dom' if self.dom and self.dom.visible() else False))
 
+    def _dom(self) -> Modal:
+        if self.dom is None:
+            raise RuntimeError('DOM-компонент диалога не настроен')
+        return self.dom
+
     def text(self) -> str:
-        return self.page.get_alert_text() if self.wait_open() == 'native' else self.page.get_text(self.dom.content)
+        return self.page.get_alert_text() if self.wait_open() == 'native' else self.page.get_text(self._dom().content)
 
     def accept(self, text: str | None = None) -> None:
         if self.wait_open() == 'native':
@@ -61,10 +87,10 @@ class Dialog:
         else:
             if text is not None:
                 raise ValueError('Ввод prompt доступен только для нативного диалога')
-            self.dom.close()
+            self._dom().close()
 
     def dismiss(self) -> None:
         if self.wait_open() == 'native':
             self.page.dismiss_alert()
         else:
-            self.dom.close()
+            self._dom().close()

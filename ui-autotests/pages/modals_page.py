@@ -41,5 +41,9 @@ class ModalsPage(BasePage):
         self.type_text(locator, value)
         self.find(locator).send_keys(Keys.TAB)
 
+    def validity(self, locator: tuple[str, str]) -> dict[str, bool]:
+        """Получить нативное состояние валидации поля без отправки формы."""
+        return self.find(locator).get_property('validity')
+
     def wait_invalid(self, locator: tuple[str, str]) -> None:
         self.wait.until(lambda _: self.find(locator).get_attribute('aria-invalid') == 'true')
