@@ -6,3 +6,4 @@ ui-autotests/allure-results/
 ui-autotests/reports/
 .env
 .idea/
+.sharrowkin/
