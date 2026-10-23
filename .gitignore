@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+ui-autotests/allure-results/
+ui-autotests/reports/
+.env
+.idea/
